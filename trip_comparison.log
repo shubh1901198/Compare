@@ -1,0 +1,12 @@
+Trip Comparison Log - 2025-11-10 15:19:04
+================================================================================
+2025-11-10 15:19:04 | 2025-10-20 10:30:00 | Distance Diff: 2.40 | Fuel Used Diff: 0.22 | Avg Speed Diff: 2.50 | Duration Diff: 2 | Result: Pass
+2025-11-10 15:19:04 | 2025-10-20 15:30:00 | Distance Diff: 3.30 | Fuel Used Diff: 0.21 | Avg Speed Diff: 1.90 | Duration Diff: 4 | Result: Pass
+2025-11-10 15:19:04 | 2025-10-21 8:00:00 | Distance Diff: 0.30 | Fuel Used Diff: 0.15 | Avg Speed Diff: 0.60 | Duration Diff: 4 | Result: Pass
+2025-11-10 15:19:04 | 2025-10-21 10:30:00 | Distance Diff: 2.90 | Fuel Used Diff: 0.46 | Avg Speed Diff: 7.20 | Duration Diff: 13 | Result: Fail
+2025-11-10 15:19:04 | 2025-10-21 13:00:00 | Distance Diff: 5.90 | Fuel Used Diff: 0.00 | Avg Speed Diff: 3.70 | Duration Diff: 2 | Result: Fail
+2025-11-10 15:19:04 | 2025-10-21 15:30:00 | Distance Diff: 4.80 | Fuel Used Diff: 0.05 | Avg Speed Diff: 1.50 | Duration Diff: 1 | Result: Pass
+2025-11-10 15:19:04 | 2025-10-22 8:00:00 | Distance Diff: 2.50 | Fuel Used Diff: 0.17 | Avg Speed Diff: 1.70 | Duration Diff: 3 | Result: Pass
+2025-11-10 15:19:04 | 2025-10-22 10:30:00 | Distance Diff: 1.40 | Fuel Used Diff: 0.35 | Avg Speed Diff: 0.60 | Duration Diff: 3 | Result: Pass
+================================================================================
+Summary: 6 Passed, 2 Failed
