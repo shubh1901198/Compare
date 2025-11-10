@@ -11,45 +11,57 @@ on:
 jobs:
   compare-trips:
     runs-on: ubuntu-latest
+    # **NEW:** Grant write permission for the OIDC token
+    permissions:
+      id-token: write # Required for aws-actions/configure-aws-credentials
+      contents: read # Required for actions/checkout
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4 # Updated to v4 for latest features/security
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v5 # Updated to v5
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    # --- Directory Creation (Good Practice) ---
-    # Ensure the logs directory exists before the script tries to write to it.
     - name: Create logs directory (if not exists)
       run: mkdir -p logs 
-      # The -p flag ensures the directory is created only if it doesn't already exist.
 
     - name: Run comparison script
-      # It is best practice to assume the script writes the log to the logs/ directory.
       run: python Data_analysis.py
       
-    # --- Verification & Artifact Upload ---
-
-    - name: List files for debugging (Optional)
-      run: ls -R
-
-    - name: Upload log file
-      uses: actions/upload-artifact@v4
+    # -----------------------------------------------
+    # 1. AWS CREDENTIALS CONFIGURATION (via OIDC)
+    # -----------------------------------------------
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        name: trip-comparison-log
-        # **CRITICAL PATH CHANGE**: 
-        # Since the log is likely created *inside* the new 'logs' directory, 
-        # the path should be 'logs/trip_comparison.log' if the script is saving it there.
-        # If your script saves it to the root, keep it as 'trip_comparison.log'.
-        # Assuming the script saves the log in the root directory as per your original file block:
-        path: Compare/logs/trip_comparison.log 
-        if-no-files-found: error # Use 'error' to prevent silent failures
-        compression-level: 6
-        overwrite: true # Changed to true for simplicity in scheduled runs
-        include-hidden-files: false
+        # ⚠️ Replace this with your actual IAM Role ARN stored in GitHub Secrets
+        role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+        # ⚠️ Replace 'us-east-1' with your desired AWS region
+        aws-region: us-east-1 
+        
+    # -----------------------------------------------
+    # 2. UPLOAD TO S3
+    # -----------------------------------------------
+    - name: Upload log file to S3
+      run: |
+        LOG_FILE="trip_comparison.log"
+        # Create a unique path using the event name and workflow run ID
+        S3_PATH="s3://your-s3-bucket-name/logs/${{ github.event_name }}/${{ github.run_id }}_${LOG_FILE}"
+        
+        echo "Uploading $LOG_FILE to S3 Path: $S3_PATH"
+        
+        # Use aws s3 cp command to upload the log file
+        # ⚠️ Replace 'your-s3-bucket-name' with your actual bucket name
+        aws s3 cp "$LOG_FILE" "$S3_PATH"
+        
+        # Verify the upload (optional)
+        echo "Verification:"
+        aws s3 ls "s3://your-s3-bucket-name/logs/${{ github.event_name }}/"
+        
+    # The artifact upload step is removed as the log is now in S3.
