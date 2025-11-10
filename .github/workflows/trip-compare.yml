@@ -48,7 +48,7 @@ jobs:
         # the path should be 'logs/trip_comparison.log' if the script is saving it there.
         # If your script saves it to the root, keep it as 'trip_comparison.log'.
         # Assuming the script saves the log in the root directory as per your original file block:
-        path: trip_comparison.log 
+        path: Compare/logs/trip_comparison.log 
         if-no-files-found: error # Use 'error' to prevent silent failures
         compression-level: 6
         overwrite: true # Changed to true for simplicity in scheduled runs
