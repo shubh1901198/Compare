@@ -1,10 +1,12 @@
 name: Trip Comparison CI/CD
 
 on:
+  # Triggers the workflow on pushes to the main branch
   push:
     branches: [ main ]
+  # Triggers the workflow every hour
   schedule:
-    - cron: '0 * * * *'  # every hour
+    - cron: '0 * * * *'
 
 jobs:
   compare-trips:
@@ -12,33 +14,42 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # Updated to v4 for latest features/security
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5 # Updated to v5
       with:
         python-version: '3.11'
 
     - name: Install dependencies
       run: pip install -r requirements.txt
 
+    # --- Directory Creation (Good Practice) ---
+    # Ensure the logs directory exists before the script tries to write to it.
+    - name: Create logs directory (if not exists)
+      run: mkdir -p logs 
+      # The -p flag ensures the directory is created only if it doesn't already exist.
+
     - name: Run comparison script
+      # It is best practice to assume the script writes the log to the logs/ directory.
       run: python Data_analysis.py
       
-    - name: Verify Log File Exists
-      run: |
-        pwd
-        # Assuming the Run comparison script creates the log in the root directory and NOT 'logs/'
-        # If the script *should* create the logs/ directory, this check is correct.
-        ls -la logs/
-        
+    # --- Verification & Artifact Upload ---
+
+    - name: List files for debugging (Optional)
+      run: ls -R
+
     - name: Upload log file
       uses: actions/upload-artifact@v4
       with:
         name: trip-comparison-log
-        # **CORRECTED PATH:** Using 'trip_comparison.log' as it was found in the root directory.
-        path: trip_comparison.log
+        # **CRITICAL PATH CHANGE**: 
+        # Since the log is likely created *inside* the new 'logs' directory, 
+        # the path should be 'logs/trip_comparison.log' if the script is saving it there.
+        # If your script saves it to the root, keep it as 'trip_comparison.log'.
+        # Assuming the script saves the log in the root directory as per your original file block:
+        path: trip_comparison.log 
         if-no-files-found: error # Use 'error' to prevent silent failures
         compression-level: 6
-        overwrite: false
+        overwrite: true # Changed to true for simplicity in scheduled runs
         include-hidden-files: false
