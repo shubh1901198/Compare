@@ -11,10 +11,11 @@ on:
 jobs:
   compare-trips:
     runs-on: ubuntu-latest
-    # **NEW:** Grant write permission for the OIDC token
+    
+    # CRITICAL: Permissions must be set to allow writing back to the repository
     permissions:
-      id-token: write # Required for aws-actions/configure-aws-credentials
-      contents: read # Required for actions/checkout
+      contents: write # Grants the GITHUB_TOKEN write access for git push
+      id-token: read # Keep read permission for checkout/general actions
 
     steps:
     - name: Checkout code
@@ -35,33 +36,29 @@ jobs:
       run: python Data_analysis.py
       
     # -----------------------------------------------
-    # 1. AWS CREDENTIALS CONFIGURATION (via OIDC)
+    # 1. COMMIT AND PUSH LOG FILE (USE WITH CAUTION)
     # -----------------------------------------------
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        # ⚠️ Replace this with your actual IAM Role ARN stored in GitHub Secrets
-        role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-        # ⚠️ Replace 'us-east-1' with your desired AWS region
-        aws-region: us-east-1 
-        
-    # -----------------------------------------------
-    # 2. UPLOAD TO S3
-    # -----------------------------------------------
-    - name: Upload log file to S3
+    - name: Commit and Push Log
       run: |
-        LOG_FILE="trip_comparison.log"
-        # Create a unique path using the event name and workflow run ID
-        S3_PATH="s3://your-s3-bucket-name/logs/${{ github.event_name }}/${{ github.run_id }}_${LOG_FILE}"
+        # Configure Git identity for the automated commit
+        git config user.name github-actions
+        git config user.email github-actions@github.com
         
-        echo "Uploading $LOG_FILE to S3 Path: $S3_PATH"
+        # Pull the latest changes before committing to avoid conflicts on schedule runs
+        # The `--rebase` option avoids creating unnecessary merge commits.
+        git pull --rebase
         
-        # Use aws s3 cp command to upload the log file
-        # ⚠️ Replace 'your-s3-bucket-name' with your actual bucket name
-        aws s3 cp "$LOG_FILE" "$S3_PATH"
+        # Stage the log file
+        git add trip_comparison.log
         
-        # Verify the upload (optional)
-        echo "Verification:"
-        aws s3 ls "s3://your-s3-bucket-name/logs/${{ github.event_name }}/"
-        
-    # The artifact upload step is removed as the log is now in S3.
+        # Check if there are any changes to commit (e.g., if the log file changed)
+        if git diff --cached --exit-code; then
+          echo "No changes in trip_comparison.log. Skipping commit."
+        else
+          git commit -m "chore: Update comparison log from CI/CD run"
+          # Push the new commit using the default GITHUB_TOKEN
+          git push
+          echo "Successfully committed and pushed new log."
+        fi
+
+    # The previous AWS S3 steps have been removed to use this new push strategy.
