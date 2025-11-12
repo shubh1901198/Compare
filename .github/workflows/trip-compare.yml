@@ -26,9 +26,18 @@ jobs:
 
     - name: Install dependencies
       run: pip install -r requirements.txt
+      
+    - name: ⚙️ Install Dependencies (boto3 for AWS)
+      run: pip install pandas boto3
 
-    - name: Create logs directory (if not exists)
-      run: mkdir -p logs 
+      # Line 31 should now be the next step, no '---'
+    - name: 🏃 Run Trip A Simulation 
+      run: python simulate_trip_a.py
+
+    - name: ⚖️ Run Trip Comparison
+      run: python compare_trips.py
+        
+      # ... and so on for all separators in the file
 
     - name: Run comparison script
       run: python Data_analysis.py
